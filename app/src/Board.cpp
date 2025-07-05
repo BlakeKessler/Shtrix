@@ -1,0 +1,135 @@
+#include "Board.hpp"
+#include "io.hpp"
+
+//create new empty board
+shtrix::Board::Board():
+   _grid{},
+   _currPiece{} {
+      init();
+}
+
+//return board to the empty state
+void shtrix::Board::init() {
+   for (uint i = 0; i < BOARD_WIDTH; ++i) {
+      for (uint j = 0; j < BOARD_HEIGHT + 4; ++j) {
+         _grid[j][i] = {BLACK, false};
+      }
+   }
+}
+
+//print the board to the terminal
+void shtrix::Board::print() {
+   //clear the screen and move to the top left corner
+   mcsl::printf(FMT("\033[2J\033[H\033[4B"));
+
+   //print each visible row
+   Color c = BLACK;
+   mcsl::write(ANSI_COLOR_CODE(c));
+   for (uint i = BOARD_HEIGHT; i--;) {
+      for (uint j = 0; j < BOARD_WIDTH; ++j) {
+         Cell curr = _grid[i][j];
+         if (c != curr.c) {
+            c = curr.c;
+            mcsl::write(ANSI_COLOR_CODE(c));
+         }
+         mcsl::printf(FMT("[]"));
+      }
+      mcsl::printf(FMT("\033[1E"));
+   }
+
+   //print the falling piece
+   mcsl::printf(FMT("\033[s"));
+   mcsl::printf(FMT("\033[H\033[%uC"), 2 * (_pieceCol - 2));
+   if (BOARD_HEIGHT + 2 - _pieceRow) {
+      mcsl::printf(FMT("\033[%uB"), BOARD_HEIGHT + 2 - _pieceRow);
+   }
+   mcsl::write(ANSI_COLOR_CODE(_currPiece.c));
+   for (uint i = 4; i--;) {
+      uint16 mask = (_currPiece.shape >> (4 * i)) & 0b1111;
+      mcsl::printf(mask & 0b0001 ? FMT("[]") : FMT("\033[2C"));
+      mcsl::printf(mask & 0b0010 ? FMT("[]") : FMT("\033[2C"));
+      mcsl::printf(mask & 0b0100 ? FMT("[]") : FMT("\033[2C"));
+      mcsl::printf(mask & 0b1000 ? FMT("[]") : FMT("\033[2C"));
+      mcsl::printf(FMT("\033[8D\033[1B"));
+   }
+   mcsl::printf(FMT("\033[u"));
+}
+
+//drop a new piece
+void shtrix::Board::dropPiece(Piece p) {
+   _currPiece = p;
+   _pieceRow = BOARD_HEIGHT + 2;
+   _pieceCol = BOARD_WIDTH / 2;
+}
+
+//calculate line clears and update the board, return score
+uint shtrix::Board::runFrame() {
+   //move piece down
+   --_pieceRow;
+
+   //check for collisions
+   if ((_pieceRow - 2 < 0) && (_currPiece.shape & 0x000F)) {
+      goto COLLISION;
+   }
+   if ((_pieceRow - 1 < 0) && (_currPiece.shape & 0x00F0)) {
+      goto COLLISION;
+   }
+   if ((_pieceRow     < 0) && (_currPiece.shape & 0x0F00)) {
+      goto COLLISION;
+   }
+   if ((_pieceRow + 1 < 0) && (_currPiece.shape & 0xF000)) {
+      goto COLLISION;
+   }
+
+   #define CHECK_CELL(row, col) \
+   if ((_currPiece.shape & (1 << (col + 4 * row))) && _grid[_pieceRow - 2 + row][_pieceCol - 2 + col].isFull) { \
+      goto COLLISION; \
+   }
+   #define CHECK_ROW(row) \
+   CHECK_CELL(row, 0) \
+   CHECK_CELL(row, 1) \
+   CHECK_CELL(row, 2) \
+   CHECK_CELL(row, 3) \
+   
+   CHECK_ROW(0)
+   CHECK_ROW(1)
+   CHECK_ROW(2)
+   CHECK_ROW(3)
+
+   #undef CHECK_ROW
+   #undef CHECK_CELL
+
+   return 0;
+
+   COLLISION:
+      ++_pieceRow;
+      #define CHECK_CELL(row, col) \
+      if((_currPiece.shape & (1 << (col + 4 * row)))) { \
+         Cell& cell = _grid[_pieceRow - 2 + row][_pieceCol - 2 + col]; \
+         cell.c = _currPiece.c; \
+         cell.isFull = true; \
+      }
+      #define CHECK_ROW(row) \
+      if ((_pieceRow - 2 + row >= 0) && (_currPiece.shape & (0x000F << (4 * row)))) { \
+         if (_pieceRow - 2 + row >= BOARD_HEIGHT) { \
+            goto LOSE; \
+         } \
+         CHECK_CELL(row, 0) \
+         CHECK_CELL(row, 1) \
+         CHECK_CELL(row, 2) \
+         CHECK_CELL(row, 3) \
+      }
+   
+      CHECK_ROW(0)
+      CHECK_ROW(1)
+      CHECK_ROW(2)
+      CHECK_ROW(3)
+
+      #undef CHECK_ROW
+      #undef CHECK_CELL
+
+      return 0; //!TODO: line clears and score
+
+   LOSE:
+      TODO;
+}
