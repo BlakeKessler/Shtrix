@@ -1,7 +1,7 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
-#include "Shelltrix.hpp"
+#include "Shtrix.hpp"
 
 #include "Piece.hpp"
 
@@ -14,17 +14,31 @@ struct shtrix::Board {
 
       Cell _grid[BOARD_HEIGHT + 4][BOARD_WIDTH];
       Piece _currPiece;
-      sint _pieceRow;
-      sint _pieceCol;
-      sint _frame;
-      sint _level;
+      sint8 _pieceRow;
+      sint8 _pieceCol;
 
    public:
+      struct Status {
+         uint8 linesCleared;
+         bool didLand;
+         bool lost;
+      };
+
       Board();
       void init();
       void print();
-      void dropPiece(Piece p);
-      uint runFrame();
+
+      void newPiece(Piece p);
+
+      Status runGravity();
+      Status lineClears();
+
+      bool checkWallCollision();
+      void move(sint8 displacement);
+      inline void moveLeft() { return move(-1); }
+      inline void moveRight() { return move(1); }
+      void rotR();
+      void rotL();
 };
 
 #endif

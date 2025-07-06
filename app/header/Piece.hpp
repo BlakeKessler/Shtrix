@@ -1,7 +1,7 @@
 #ifndef PIECE_HPP
 #define PIECE_HPP
 
-#include "Shelltrix.hpp"
+#include "Shtrix.hpp"
 
 struct shtrix::Piece {
    uint16 shape;
@@ -9,6 +9,9 @@ struct shtrix::Piece {
 
    void rotR();
    void rotL();
+
+   void transpose();
+   void revRows();
 };
 
 namespace shtrix {
