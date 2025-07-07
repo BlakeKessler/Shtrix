@@ -28,6 +28,7 @@ uint32 shtrix::Game::play(uint8 startLevel) {
 uint32 shtrix::Game::playImpl() {
    board.init();
    board.newPiece(selectPiece());
+   board.newPiece(selectPiece());
    
    Board::Status status{
       .linesCleared = 0,

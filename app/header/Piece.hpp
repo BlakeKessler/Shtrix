@@ -16,13 +16,13 @@ struct shtrix::Piece {
 
 namespace shtrix {
    constexpr Piece PIECES[] {
-      {0x44440F00222200F0,    CYAN}, //LONGBAR
-      {0x8E0064400E2044C0,    BLUE}, //J
-      {0x44600E80C4402E00,   WHITE}, //L
+      {0x00F044440F002222,    CYAN}, //LONGBAR
+      {0x0223007406220170,    BLUE}, //J
+      {0x0322007102260470,   WHITE}, //L
       {0x0660066006600660,  YELLOW}, //SQUARE
-      {0xC60026400C604C80,   GREEN}, //S
-      {0x4E0046400E404C40, MAGENTA}, //T
-      {0x6C00462006C08C40,     RED}  //Z
+      {0x0132006302640630,   GREEN}, //S
+      {0x0232007202620270, MAGENTA}, //T
+      {0x0231003604620360,     RED}  //Z
    };
 }
 

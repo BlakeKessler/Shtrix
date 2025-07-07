@@ -14,6 +14,7 @@ struct shtrix::Board {
 
       Cell _grid[BOARD_HEIGHT + 4][BOARD_WIDTH];
       Piece _currPiece;
+      Piece _nextPiece;
       sint8 _pieceRow;
       sint8 _pieceCol;
 
