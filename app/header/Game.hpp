@@ -13,12 +13,15 @@ struct shtrix::Game {
    private:
       InputReader input;
       Board board;
-      uint32 score;
-      uint16 linesCleared;
       Bag bag;
-      uint8 level;
       uint8 untilGrav;
       std::timespec nextFrame;
+      
+      uint8 level;
+      uint32 score;
+      uint16 linesCleared;
+      uint16 linesPerLevel;
+      uint16 nextLevelup;
 
       Game(uint8 startLevel);
       uint32 playImpl();

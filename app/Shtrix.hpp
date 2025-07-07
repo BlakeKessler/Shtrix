@@ -66,7 +66,10 @@ namespace shtrix {
       CYAN,
       WHITE,
    };
-   const mcsl::str_slice ANSI_COLOR_CODE(Color);
+   const mcsl::str_slice ANSI_BACKGROUND_COLOR(Color);
+   const mcsl::str_slice ANSI_FOREGROUND_COLOR(Color);
+   const mcsl::str_slice ANSI_BRIGHT_BACKGROUND_COLOR(Color);
+   const mcsl::str_slice ANSI_BRIGHT_FOREGROUND_COLOR(Color);
 };
 
 #endif

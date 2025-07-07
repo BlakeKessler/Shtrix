@@ -26,7 +26,7 @@ struct shtrix::Board {
 
       Board();
       void init();
-      void print();
+      void print(uint8 level, uint32 score, uint16 lines);
 
       void newPiece(Piece p);
 

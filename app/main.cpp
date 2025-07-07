@@ -24,20 +24,25 @@ void disableRawMode() {
 
 void init() {
    enableRawMode();
-   mcsl::printf(FMT("\033[90m\033[?25l"));
+   mcsl::printf(FMT("%s\033[?25l"), shtrix::ANSI_BRIGHT_FOREGROUND_COLOR(shtrix::BLACK));
    mcsl::flush();
 }
 void halt() {
    std::timespec t {.tv_sec = 1, .tv_nsec = 0};
    thrd_sleep(&t, nullptr);
-   mcsl::printf(FMT("\033[H\033[%uB\033[0m\033[?25h"), shtrix::BOARD_HEIGHT + 4);
+   mcsl::printf(FMT("\033[H\033[%uB\033[0m\033[?25h"), shtrix::BOARD_HEIGHT + 6);
    disableRawMode();
 }
 
 sint main(sint argc, char** argv) {
    init();
-   uint score = shtrix::Game::play(10);
+   uint8 level = 0;
+   if (argc > 1) {
+      level = mcsl::str_to_uint(argv[1], argv[1] + std::strlen(argv[1]));
+      if (level > 0) {
+         --level;
+      }
+   }
+   shtrix::Game::play(level);
    halt();
-   mcsl::printf(FMT("FINAL SCORE: %u!\n"), score);
-   std::exit(EXIT_SUCCESS);
 }

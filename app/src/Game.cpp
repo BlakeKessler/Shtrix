@@ -1,20 +1,27 @@
 #include "Game.hpp"
 
+#include "io.hpp"
 #include "assert.hpp"
 #include "rand.hpp"
 #include <threads.h>
 
 shtrix::Game::Game(uint8 startLevel):
    board(),
+   bag(),
+   untilGrav(0),
+
+   level(startLevel),
    score(0),
    linesCleared(0),
-   bag(),
-   level(startLevel),
-   untilGrav(0) {
+   linesPerLevel(mcsl::min(10 * (level + 2), mcsl::max(100, 10 * ((sint16)level - 4)))),
+   nextLevelup(linesPerLevel) {
 
 }
 
 uint32 shtrix::Game::play(uint8 startLevel) {
+   std::timespec now{};
+   std::timespec_get(&now, TIME_UTC);
+   mcsl::srand(now.tv_nsec << 3 | now.tv_sec >> 4);
    Game game{startLevel};
    return game.playImpl();
 }
@@ -74,27 +81,36 @@ uint32 shtrix::Game::playImpl() {
          }
       }
       else { //check gravity timer
-         //reset gravity timer
-         untilGrav = FRAMES_PER_CELL[mcsl::min(level, sizeof(FRAMES_PER_CELL) / sizeof(FRAMES_PER_CELL[0]))];
          //apply gravity
          status = board.runGravity();
          //process results of gravity
-         if (status.didLand) { DID_LAND:
+         if (status.didLand && !status.lost) { DID_LAND:
+            //pick next piece
             board.newPiece(selectPiece());
             if (!bag) {
                new (&bag) Bag{};
             }
 
+            //update score and lines cleared
             score += (level + 1) * (10 * POINTS_BY_LINES_CLEARED[status.linesCleared]);
             linesCleared += status.linesCleared;
+
+            //handle levelups
+            if (linesCleared >= nextLevelup) {
+               ++level;
+               linesPerLevel += 10;
+               nextLevelup += linesPerLevel;
+            } 
          }
+         //reset gravity timer
+         untilGrav = FRAMES_PER_CELL[mcsl::min(level, sizeof(FRAMES_PER_CELL) / sizeof(FRAMES_PER_CELL[0]))];
       }
 
       //reset inputs
       input.status.clear();
 
       //print
-      board.print();
+      board.print(level, score, linesCleared);
 
       //wait for next frame
       thrd_yield();
@@ -113,20 +129,17 @@ uint32 shtrix::Game::playImpl() {
 }
 
 shtrix::Piece shtrix::Game::selectPiece() {
-   //select random int between 0 and 7
    debug_assert(bag && !bag.PAD);
-   switch ((mcsl::rand()) & 7) {
+   switch ((mcsl::rand()) % 7) {
       CASE_0:
-      case 0: if (bag.hasI) { return PIECES[0]; }
-      case 1: if (bag.hasJ) { return PIECES[1]; }
-      case 2: if (bag.hasL) { return PIECES[2]; }
-      case 3: if (bag.hasO) { return PIECES[3]; }
-      case 4: if (bag.hasS) { return PIECES[4]; }
-      case 5: if (bag.hasT) { return PIECES[5]; }
-      case 6: if (bag.hasZ) { return PIECES[6]; }
+      case 0: if (bag.hasI) { bag.hasI = false; return PIECES[0]; }
+      case 1: if (bag.hasJ) { bag.hasJ = false; return PIECES[1]; }
+      case 2: if (bag.hasL) { bag.hasL = false; return PIECES[2]; }
+      case 3: if (bag.hasO) { bag.hasO = false; return PIECES[3]; }
+      case 4: if (bag.hasS) { bag.hasS = false; return PIECES[4]; }
+      case 5: if (bag.hasT) { bag.hasT = false; return PIECES[5]; }
+      case 6: if (bag.hasZ) { bag.hasZ = false; return PIECES[6]; }
          goto CASE_0;
-
-      case 7: [[clang::musttail]] return selectPiece();
    };
    UNREACHABLE;
 }

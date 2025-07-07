@@ -18,25 +18,25 @@ void shtrix::Board::init() {
 }
 
 //print the board to the terminal
-void shtrix::Board::print() {
+void shtrix::Board::print(uint8 level, uint32 score, uint16 lines) {
    //clear the screen and move to the top left corner
    mcsl::printf(FMT("\033[2J\033[H\033[4B\033[6C"));
 
    //print each visible row
    Color c = BLACK;
-   mcsl::write(ANSI_COLOR_CODE(c));
+   mcsl::write(ANSI_BACKGROUND_COLOR(c));
    for (uint8 i = BOARD_HEIGHT; i--;) {
       for (uint8 j = 0; j < BOARD_WIDTH; ++j) {
          Cell curr = _grid[i][j];
          if (c != curr.c) {
             c = curr.c;
-            mcsl::write(ANSI_COLOR_CODE(c));
+            mcsl::write(ANSI_BACKGROUND_COLOR(c));
          }
          mcsl::printf(FMT("[]"));
       }
       mcsl::printf(FMT("\033[1E\033[6C"));
    }
-   mcsl::write(ANSI_COLOR_CODE(DEFAULT));
+   mcsl::write(ANSI_BACKGROUND_COLOR(DEFAULT));
 
    //print the falling piece
    mcsl::printf(FMT("\033[s"));
@@ -44,7 +44,7 @@ void shtrix::Board::print() {
    if (BOARD_HEIGHT + 2 - _pieceRow) {
       mcsl::printf(FMT("\033[%uB"), BOARD_HEIGHT + 2 - _pieceRow);
    }
-   mcsl::write(ANSI_COLOR_CODE(_currPiece.c));
+   mcsl::write(ANSI_BACKGROUND_COLOR(_currPiece.c));
    for (uint8 i = 4; i--;) {
       uint16 mask = (_currPiece.shape >> (4 * i)) & 0b1111;
       mcsl::printf(mask & 0b0001 ? FMT("[]") : FMT("\033[2C"));
@@ -53,8 +53,9 @@ void shtrix::Board::print() {
       mcsl::printf(mask & 0b1000 ? FMT("[]") : FMT("\033[2C"));
       mcsl::printf(FMT("\033[8D\033[1B"));
    }
-   mcsl::write(ANSI_COLOR_CODE(DEFAULT));
+   mcsl::write(ANSI_BACKGROUND_COLOR(DEFAULT));
    mcsl::printf(FMT("\033[u"));
+   mcsl::printf(FMT("%sLevel: %u\033[u\033[1B%sScore: %u\033[u\033[2B%sLines: %u%s"), ANSI_FOREGROUND_COLOR(WHITE), level+1, ANSI_FOREGROUND_COLOR(WHITE), score, ANSI_FOREGROUND_COLOR(WHITE), lines, ANSI_BRIGHT_FOREGROUND_COLOR(BLACK));
    mcsl::stdout.flush();
 }
 
