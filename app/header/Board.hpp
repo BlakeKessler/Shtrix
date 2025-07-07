@@ -33,7 +33,10 @@ struct shtrix::Board {
       Status runGravity();
       Status lineClears();
 
-      bool checkWallCollision();
+      bool checkFloorCollision(Piece piece, sint8 r, sint8 c);
+      bool checkWallCollision(Piece piece, sint8 r, sint8 c);
+      bool checkFloorCollision() { return checkFloorCollision(_currPiece, _pieceRow, _pieceCol); }
+      bool checkWallCollision() { return checkWallCollision(_currPiece, _pieceRow, _pieceCol); }
       void move(sint8 displacement);
       inline void moveLeft() { return move(-1); }
       inline void moveRight() { return move(1); }

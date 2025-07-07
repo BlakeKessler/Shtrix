@@ -37,9 +37,33 @@ void shtrix::Board::print(uint8 level, uint32 score, uint16 lines) {
       mcsl::printf(FMT("\033[1E\033[6C"));
    }
    mcsl::write(ANSI_BACKGROUND_COLOR(DEFAULT));
+   //save bottom of grid
+   mcsl::printf(FMT("\033[s"));
+
+   //print ghost piece
+   Piece ghost = _currPiece;
+   sint8 ghostRow = _pieceRow;
+   do {
+      --ghostRow;
+   } while (!checkFloorCollision(ghost, ghostRow, _pieceCol));
+   ++ghostRow;
+   
+   mcsl::printf(FMT("\033[H\033[%uC"), 2 * (_pieceCol + 1));
+   if (BOARD_HEIGHT + 2 - ghostRow) {
+      mcsl::printf(FMT("\033[%uB"), BOARD_HEIGHT + 2 - ghostRow);
+   }
+   mcsl::write(ANSI_BACKGROUND_COLOR(BLACK));
+   mcsl::write(ANSI_BRIGHT_FOREGROUND_COLOR(ghost.c));
+   for (uint8 i = 4; i--;) {
+      uint16 mask = (ghost.shape >> (4 * i)) & 0b1111;
+      mcsl::printf(mask & 0b0001 ? FMT("[]") : FMT("\033[2C"));
+      mcsl::printf(mask & 0b0010 ? FMT("[]") : FMT("\033[2C"));
+      mcsl::printf(mask & 0b0100 ? FMT("[]") : FMT("\033[2C"));
+      mcsl::printf(mask & 0b1000 ? FMT("[]") : FMT("\033[2C"));
+      mcsl::printf(FMT("\033[8D\033[1B"));
+   }
 
    //print the falling piece
-   mcsl::printf(FMT("\033[s"));
    mcsl::printf(FMT("\033[H\033[%uC"), 2 * (_pieceCol + 1));
    if (BOARD_HEIGHT + 2 - _pieceRow) {
       mcsl::printf(FMT("\033[%uB"), BOARD_HEIGHT + 2 - _pieceRow);
@@ -53,6 +77,8 @@ void shtrix::Board::print(uint8 level, uint32 score, uint16 lines) {
       mcsl::printf(mask & 0b1000 ? FMT("[]") : FMT("\033[2C"));
       mcsl::printf(FMT("\033[8D\033[1B"));
    }
+
+   //print stats
    mcsl::write(ANSI_BACKGROUND_COLOR(DEFAULT));
    mcsl::printf(FMT("\033[u"));
    mcsl::printf(FMT("%sLevel: %u\033[u\033[1B%sScore: %u\033[u\033[2B%sLines: %u%s"), ANSI_FOREGROUND_COLOR(WHITE), level+1, ANSI_FOREGROUND_COLOR(WHITE), score, ANSI_FOREGROUND_COLOR(WHITE), lines, ANSI_BRIGHT_FOREGROUND_COLOR(BLACK));
@@ -70,38 +96,9 @@ void shtrix::Board::newPiece(Piece p) {
 shtrix::Board::Status shtrix::Board::runGravity() {
    //move piece down
    --_pieceRow;
-
-   //check for collisions
-   if ((_pieceRow - 2 < 0) && (_currPiece.shape & 0x000F)) {
+   if (checkFloorCollision()) {
       goto COLLISION;
    }
-   if ((_pieceRow - 1 < 0) && (_currPiece.shape & 0x00F0)) {
-      goto COLLISION;
-   }
-   if ((_pieceRow     < 0) && (_currPiece.shape & 0x0F00)) {
-      goto COLLISION;
-   }
-   if ((_pieceRow + 1 < 0) && (_currPiece.shape & 0xF000)) {
-      goto COLLISION;
-   }
-
-   #define CHECK_CELL(row, col) \
-   if ((_currPiece.shape & (1 << (col + 4 * row))) && _grid[_pieceRow - 2 + row][_pieceCol - 2 + col].isFull) { \
-      goto COLLISION; \
-   }
-   #define CHECK_ROW(row) \
-   CHECK_CELL(row, 0) \
-   CHECK_CELL(row, 1) \
-   CHECK_CELL(row, 2) \
-   CHECK_CELL(row, 3) \
-   
-   CHECK_ROW(0)
-   CHECK_ROW(1)
-   CHECK_ROW(2)
-   CHECK_ROW(3)
-
-   #undef CHECK_ROW
-   #undef CHECK_CELL
 
    return Status{
       .linesCleared = 0,
@@ -203,36 +200,72 @@ void shtrix::Board::rotL() {
    }
 }
 
-bool shtrix::Board::checkWallCollision() {
-      //check for collisions
-   if ((_pieceCol - 2 < 0) && (_currPiece.shape & 0x1111)) {
-      return true;
-   }
-   if ((_pieceCol - 1 < 0) && (_currPiece.shape & 0x2222)) {
-      return true;
-   }
-   if ((_pieceCol     < 0) && (_currPiece.shape & 0x4444)) {
-      return true;
-   }
-   if ((_pieceCol + 1 < 0) && (_currPiece.shape & 0x8888)) {
-      return true;
-   }
+bool shtrix::Board::checkFloorCollision(Piece piece, sint8 r, sint8 c) {
 
-   if ((_pieceCol + 1 >= BOARD_WIDTH) && (_currPiece.shape & 0x8888)) {
+   //check for collisions
+   if ((r - 2 < 0) && (piece.shape & 0x000F)) {
       return true;
    }
-   if ((_pieceCol     >= BOARD_WIDTH) && (_currPiece.shape & 0x4444)) {
+   if ((r - 1 < 0) && (piece.shape & 0x00F0)) {
       return true;
    }
-   if ((_pieceCol - 1 >= BOARD_WIDTH) && (_currPiece.shape & 0x2222)) {
+   if ((r     < 0) && (piece.shape & 0x0F00)) {
       return true;
    }
-   if ((_pieceCol - 2 >= BOARD_WIDTH) && (_currPiece.shape & 0x1111)) {
+   if ((r + 1 < 0) && (piece.shape & 0xF000)) {
       return true;
    }
 
    #define CHECK_CELL(row, col) \
-   if ((_currPiece.shape & (1 << (col + 4 * row))) && _grid[_pieceRow - 2 + row][_pieceCol - 2 + col].isFull) { \
+   if ((piece.shape & (1 << (col + 4 * row))) && _grid[r - 2 + row][c - 2 + col].isFull) { \
+      return true; \
+   }
+   #define CHECK_ROW(row) \
+   CHECK_CELL(row, 0) \
+   CHECK_CELL(row, 1) \
+   CHECK_CELL(row, 2) \
+   CHECK_CELL(row, 3) \
+   
+   CHECK_ROW(0)
+   CHECK_ROW(1)
+   CHECK_ROW(2)
+   CHECK_ROW(3)
+
+   #undef CHECK_ROW
+   #undef CHECK_CELL
+   
+   return false;
+}
+bool shtrix::Board::checkWallCollision(Piece piece, sint8 r, sint8 c) {
+      //check for collisions
+   if ((c - 2 < 0) && (piece.shape & 0x1111)) {
+      return true;
+   }
+   if ((c - 1 < 0) && (piece.shape & 0x2222)) {
+      return true;
+   }
+   if ((c     < 0) && (piece.shape & 0x4444)) {
+      return true;
+   }
+   if ((c + 1 < 0) && (piece.shape & 0x8888)) {
+      return true;
+   }
+
+   if ((c + 1 >= BOARD_WIDTH) && (piece.shape & 0x8888)) {
+      return true;
+   }
+   if ((c     >= BOARD_WIDTH) && (piece.shape & 0x4444)) {
+      return true;
+   }
+   if ((c - 1 >= BOARD_WIDTH) && (piece.shape & 0x2222)) {
+      return true;
+   }
+   if ((c - 2 >= BOARD_WIDTH) && (piece.shape & 0x1111)) {
+      return true;
+   }
+
+   #define CHECK_CELL(row, col) \
+   if ((piece.shape & (1 << (col + 4 * row))) && _grid[r - 2 + row][c - 2 + col].isFull) { \
       return true; \
    }
    #define CHECK_COL(col) \

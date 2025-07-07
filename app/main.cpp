@@ -4,10 +4,8 @@
 #include "io.hpp"
 #include <threads.h>
 #include <cstdlib>
-#undef NULL
-
-
 #include <termios.h>
+#undef NULL
 void enableRawMode() {
   struct termios raw;
   tcgetattr(STDIN_FILENO, &raw);
@@ -20,7 +18,6 @@ void disableRawMode() {
   canon.c_lflag |= (ECHO | ICANON);
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &canon);
 }
-#undef NULL
 
 void init() {
    enableRawMode();
