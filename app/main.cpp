@@ -3,6 +3,7 @@
 
 #include "io.hpp"
 #include <threads.h>
+#include <signal.h>
 #include <cstdlib>
 #include <termios.h>
 #undef NULL
@@ -24,14 +25,18 @@ void init() {
    mcsl::printf(FMT("%s\033[?25l"), shtrix::ANSI_BRIGHT_FOREGROUND_COLOR(shtrix::BLACK));
    mcsl::flush();
 }
-void halt() {
+void halt(sint i) {
    std::timespec t {.tv_sec = 1, .tv_nsec = 0};
    thrd_sleep(&t, nullptr);
-   mcsl::printf(FMT("\033[H\033[%uB\033[0m\033[?25h"), shtrix::BOARD_HEIGHT + 7);
+   mcsl::printf(FMT("\033[?25h\033[H\033[%uB\033[0m"), shtrix::BOARD_HEIGHT + 7);
+   mcsl::flush();
    disableRawMode();
+   std::exit(i);
 }
 
 sint main(sint argc, char** argv) {
+   signal(SIGINT, &halt);
+   signal(SIGTERM, &halt);
    init();
    uint8 level = 0;
    if (argc > 1) {
@@ -41,5 +46,5 @@ sint main(sint argc, char** argv) {
       }
    }
    shtrix::Game::play(level);
-   halt();
+   halt(EXIT_SUCCESS);
 }
