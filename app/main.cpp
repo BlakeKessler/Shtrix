@@ -30,7 +30,7 @@ void init() {
 void halt() {
    std::timespec t {.tv_sec = 1, .tv_nsec = 0};
    thrd_sleep(&t, nullptr);
-   mcsl::printf(FMT("\033[H\033[%uB\033[0m\033[?25h"), shtrix::BOARD_HEIGHT + 6);
+   mcsl::printf(FMT("\033[H\033[%uB\033[0m\033[?25h"), shtrix::BOARD_HEIGHT + 7);
    disableRawMode();
 }
 
