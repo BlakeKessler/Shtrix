@@ -68,6 +68,7 @@ namespace shtrix {
 
       void clear() { new (this) Held(); }
    };
+   constexpr char PAUSE2 = '\033';
    constexpr char PAUSE = 'r';
    constexpr char LEFT = 'a';
    constexpr char RIGHT = 'd';

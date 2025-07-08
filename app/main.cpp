@@ -37,6 +37,7 @@ sint main(sint argc, char** argv) {
       mcsl::printf(FMT("\033[1mDESCRIPTION\033[22m\n"));
       mcsl::printf(FMT("\t\033[4mcontrols:\033[24m\n"));
       mcsl::printf(FMT("\t\t'%c': pause/unpause\n"), shtrix::PAUSE);
+      mcsl::printf(FMT("\t\tESC: pause/unpause\n"));
       mcsl::printf(FMT("\t\t'%c': move left\n"), shtrix::LEFT);
       mcsl::printf(FMT("\t\t'%c': move right\n"), shtrix::RIGHT);
       mcsl::printf(FMT("\t\t'%c': rotate left\n"), shtrix::ROT_LEFT);

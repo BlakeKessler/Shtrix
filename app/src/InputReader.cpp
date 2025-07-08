@@ -13,6 +13,7 @@ void shtrix::InputReader::readInputs() {
          case SOFT_DROP: status.softDrop = true; break;
          case HARD_DROP: status.hardDrop = true; break;
          case PAUSE    :    status.pause = true; break;
+         case PAUSE2   :    status.pause = true; break;
 
          default: break;
       }
