@@ -49,6 +49,23 @@ uint32 shtrix::Game::playImpl() {
       }
 
       //process frame
+      if (input.status.pause) {
+         mcsl::printf(FMT("\033[H\033[2B\033[13C%sPAUSED%s"), ANSI_FOREGROUND_COLOR(DEFAULT), ANSI_FOREGROUND_COLOR(BLACK));
+         mcsl::flush();
+         input.status.clear();
+         std::timespec pauseTime;
+         std::timespec_get(&pauseTime, TIME_UTC);
+         while (!input.status.pause) {
+            input.readInputs();
+         }
+         input.status.clear();
+         std::timespec unpauseTime;
+         std::timespec_get(&unpauseTime, TIME_UTC);
+         nextFrame.tv_sec += unpauseTime.tv_sec - pauseTime.tv_sec;
+         nextFrame.tv_nsec += unpauseTime.tv_nsec - pauseTime.tv_nsec;
+         board.print(level, score, linesCleared);
+         continue;
+      }
       if (input.status.left) {
          board.moveLeft();
       }

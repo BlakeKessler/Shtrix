@@ -24,7 +24,7 @@ void shtrix::Board::print(uint8 level, uint32 score, uint16 lines) {
 
    //print next piece
    mcsl::write(ANSI_BACKGROUND_COLOR(DEFAULT));
-   mcsl::printf(FMT("\033[22C  NEXT  "));
+   mcsl::printf(FMT("\033[22C%s  NEXT  %s"), ANSI_FOREGROUND_COLOR(WHITE), ANSI_BRIGHT_FOREGROUND_COLOR(BLACK));
    mcsl::write(ANSI_BACKGROUND_COLOR(BLACK));
    mcsl::printf(FMT("\033[8D\033[1B[][][][]"));
    mcsl::printf(FMT("\033[8D\033[1B[][][][]"));

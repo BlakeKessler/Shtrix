@@ -5,13 +5,13 @@
 #include <sys/select.h>
 #include <unistd.h>
 #include <termios.h>
-void enableRawMode() {
+inline void enableRawMode() {
    struct termios raw;
    tcgetattr(STDIN_FILENO, &raw);
    raw.c_lflag &= ~(ECHO | ICANON);
    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
-void disableRawMode() {
+inline void disableRawMode() {
    struct termios canon;
    tcgetattr(STDIN_FILENO, &canon);
    canon.c_lflag |= (ECHO | ICANON);
@@ -27,14 +27,14 @@ inline bool kbhit() {
 }
 #elif __has_include(<windows.h>)
 #include <windows.h>
-void enableRawMode() {
+inline void enableRawMode() {
    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE); 
    DWORD mode = 0;
    GetConsoleMode(hStdin, &mode);
    mode &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
    SetConsoleMode(STD_INPUT_HANDLE, mode);
 }
-void disableRawMode() {
+inline void disableRawMode() {
    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE); 
    DWORD mode = 0;
    GetConsoleMode(hStdin, &mode);
@@ -57,16 +57,18 @@ namespace shtrix {
 
    class InputReader;
 
-   struct Held { //separate bytes to avoid race conditions
-      bool left = false;
-      bool right = false;
-      bool rotLeft = false;
+   struct Held {
+      bool left     = false;
+      bool right    = false;
+      bool rotLeft  = false;
       bool rotRight = false;
       bool softDrop = false;
       bool hardDrop = false;
+      bool pause    = false;
 
       void clear() { new (this) Held(); }
    };
+   constexpr char PAUSE = 'r';
    constexpr char LEFT = 'a';
    constexpr char RIGHT = 'd';
    constexpr char ROT_LEFT = 'q';
