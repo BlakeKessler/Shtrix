@@ -22,13 +22,30 @@ void halt(sint i) {
 }
 
 sint main(sint argc, char** argv) {
-   signal(SIGINT, &halt);
-   signal(SIGTERM, &halt);
-   init();
-   uint8 level = 0;
    if (argc > 1) {
-      level = mcsl::str_to_uint(argv[1], argv[1] + std::strlen(argv[1]));
+      signal(SIGINT, &halt);
+      signal(SIGTERM, &halt);
+      init();
+      uint8 level = mcsl::min(mcsl::str_to_uint(argv[1], argv[1] + std::strlen(argv[1])), 29);
+      shtrix::Game::play(level);
+      halt(EXIT_SUCCESS);
+   } else {
+      mcsl::printf(FMT("\033[1mNAME\033[22m\n"));
+      mcsl::printf(FMT("\t\033[4mSHTRIX\033[24m - falling tetraminos in the shell\n"));
+      mcsl::printf(FMT("\033[1mSYNPOSIS\033[22m\n"));
+      mcsl::printf(FMT("\tshtrix \033[1mLEVEL\033[22m\n"));
+      mcsl::printf(FMT("\033[1mDESCRIPTION\033[22m\n"));
+      mcsl::printf(FMT("\t\033[4mcontrols:\033[24m\n"));
+      mcsl::printf(FMT("\t\t'%c': pause/unpause\n"), shtrix::PAUSE);
+      mcsl::printf(FMT("\t\t'%c': move left\n"), shtrix::LEFT);
+      mcsl::printf(FMT("\t\t'%c': move right\n"), shtrix::RIGHT);
+      mcsl::printf(FMT("\t\t'%c': rotate left\n"), shtrix::ROT_LEFT);
+      mcsl::printf(FMT("\t\t'%c': rotate right\n"), shtrix::ROT_RIGHT);
+      mcsl::printf(FMT("\t\t'%c': soft drop\n"), shtrix::SOFT_DROP);
+      mcsl::printf(FMT("\t\t'%c': hard drop\n"), shtrix::HARD_DROP);
+      mcsl::printf(FMT("\033[1mOPTIONS\033[22m\n"));
+      mcsl::printf(FMT("\t\033[1mLEVEL\033[22m\n"));
+      mcsl::printf(FMT("\t\tthe level to start playing at (0-29)\n"));
+
    }
-   shtrix::Game::play(level);
-   halt(EXIT_SUCCESS);
 }
