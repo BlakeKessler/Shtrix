@@ -13,15 +13,14 @@ shtrix::Game::Game(uint8 startLevel):
    level(startLevel),
    score(0),
    linesCleared(0),
-   linesPerLevel(mcsl::min(10 * (level + 2), mcsl::max(100, 10 * ((sint16)level - 4)))),
-   nextLevelup(linesPerLevel) {
+   nextLevelup(10 * (startLevel + 1)) {
 
 }
 
 uint32 shtrix::Game::play(uint8 startLevel) {
    std::timespec now{};
    std::timespec_get(&now, TIME_UTC);
-   mcsl::srand(now.tv_nsec << 3 | now.tv_sec >> 4);
+   mcsl::srand(now.tv_nsec);
    Game game{startLevel};
    return game.playImpl();
 }
@@ -33,7 +32,8 @@ uint32 shtrix::Game::playImpl() {
    Board::Status status{
       .linesCleared = 0,
       .didLand = false,
-      .lost = false
+      .lost = false,
+      .height = 0
    };
    while (!status.lost) {
       mcsl::rand(); //advance RNG to prevent deterministic games
@@ -86,6 +86,9 @@ uint32 shtrix::Game::playImpl() {
          status = board.runGravity();
          //process results of gravity
          if (status.didLand && !status.lost) { DID_LAND:
+            //delay next frame
+            nextFrame.tv_nsec += NS_PER_FRAME * DELAY_FRAMES[status.height];
+
             //pick next piece
             board.newPiece(selectPiece());
             if (!bag) {
@@ -99,8 +102,7 @@ uint32 shtrix::Game::playImpl() {
             //handle levelups
             if (linesCleared >= nextLevelup) {
                ++level;
-               linesPerLevel += 10;
-               nextLevelup += linesPerLevel;
+               nextLevelup += 10;
             } 
          }
          //reset gravity timer

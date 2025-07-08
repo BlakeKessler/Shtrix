@@ -5,20 +5,7 @@
 #include <threads.h>
 #include <signal.h>
 #include <cstdlib>
-#include <termios.h>
 #undef NULL
-void enableRawMode() {
-  struct termios raw;
-  tcgetattr(STDIN_FILENO, &raw);
-  raw.c_lflag &= ~(ECHO | ICANON);
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
-void disableRawMode() {
-  struct termios canon;
-  tcgetattr(STDIN_FILENO, &canon);
-  canon.c_lflag |= (ECHO | ICANON);
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &canon);
-}
 
 void init() {
    enableRawMode();
@@ -41,9 +28,6 @@ sint main(sint argc, char** argv) {
    uint8 level = 0;
    if (argc > 1) {
       level = mcsl::str_to_uint(argv[1], argv[1] + std::strlen(argv[1]));
-      if (level > 0) {
-         --level;
-      }
    }
    shtrix::Game::play(level);
    halt(EXIT_SUCCESS);

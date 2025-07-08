@@ -23,6 +23,7 @@ struct shtrix::Board {
          uint8 linesCleared;
          bool didLand;
          bool lost;
+         uint8 height;
       };
 
       Board();

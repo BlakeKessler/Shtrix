@@ -103,7 +103,7 @@ void shtrix::Board::print(uint8 level, uint32 score, uint16 lines) {
    //print stats
    mcsl::write(ANSI_BACKGROUND_COLOR(DEFAULT));
    mcsl::printf(FMT("\033[u"));
-   mcsl::printf(FMT("%sLevel: %u\033[u\033[1B%sScore: %u\033[u\033[2B%sLines: %u%s"), ANSI_FOREGROUND_COLOR(WHITE), level+1, ANSI_FOREGROUND_COLOR(WHITE), score, ANSI_FOREGROUND_COLOR(WHITE), lines, ANSI_BRIGHT_FOREGROUND_COLOR(BLACK));
+   mcsl::printf(FMT("%sLevel: %u\033[u\033[1B%sScore: %u\033[u\033[2B%sLines: %u%s"), ANSI_FOREGROUND_COLOR(WHITE), level, ANSI_FOREGROUND_COLOR(WHITE), score, ANSI_FOREGROUND_COLOR(WHITE), lines, ANSI_BRIGHT_FOREGROUND_COLOR(BLACK));
    mcsl::stdout.flush();
 }
 
@@ -126,7 +126,8 @@ shtrix::Board::Status shtrix::Board::runGravity() {
    return Status{
       .linesCleared = 0,
       .didLand = false,
-      .lost = false
+      .lost = false,
+      .height = 0
    };
 
    COLLISION:
@@ -162,7 +163,8 @@ shtrix::Board::Status shtrix::Board::runGravity() {
       return Status{
          .linesCleared = 0,
          .didLand = true,
-         .lost = true
+         .lost = true,
+         .height = 0
       };
 }
 
@@ -170,10 +172,10 @@ shtrix::Board::Status shtrix::Board::lineClears() {
    Status status {
       .linesCleared = 0,
       .didLand = true,
-      .lost = false
+      .lost = false,
+      .height = 0
    };
    uint8 clearSize = 0;
-   uint firstClear = 0;
    for (uint8 i = 0; i < BOARD_HEIGHT; ++i) {
       for (uint8 j = 0; j < BOARD_WIDTH; ++j) {
          if (!_grid[i][j].isFull) {
@@ -182,7 +184,7 @@ shtrix::Board::Status shtrix::Board::lineClears() {
       }
       //clear
       if (!clearSize) {
-         firstClear = i;
+         status.height = i;
       }
       ++clearSize;
       continue;
@@ -196,7 +198,7 @@ shtrix::Board::Status shtrix::Board::lineClears() {
    }
    
    status.linesCleared += clearSize;
-   mcsl::memcpy((ubyte*)(_grid + firstClear), (ubyte*)(_grid + firstClear + clearSize), (BOARD_HEIGHT - (firstClear + clearSize)) * sizeof(_grid[0]));
+   mcsl::memcpy((ubyte*)(_grid + status.height), (ubyte*)(_grid + status.height + clearSize), (BOARD_HEIGHT - (status.height + clearSize)) * sizeof(_grid[0]));
    std::memset(_grid + BOARD_HEIGHT - clearSize, 0, sizeof(_grid[0]));
    
    return status;

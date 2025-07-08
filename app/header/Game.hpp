@@ -20,7 +20,6 @@ struct shtrix::Game {
       uint8 level;
       uint32 score;
       uint16 linesCleared;
-      uint16 linesPerLevel;
       uint16 nextLevelup;
 
       Game(uint8 startLevel);
