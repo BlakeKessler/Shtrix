@@ -13,7 +13,7 @@ shtrix::Game::Game(uint8 startLevel):
    level(startLevel),
    score(0),
    linesCleared(0),
-   nextLevelup(10 * (startLevel + 1)) {
+   nextLevelup(10) {
 
 }
 
